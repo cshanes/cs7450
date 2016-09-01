@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.6.2.min.js"></script>
+    <script type="text/javascript" src="jquery.tipsy.js"></script>
+    <link href="tipsy.css" rel="stylesheet" type="text/css" />
+</head>
+<style>
+
+    body {
+        font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+
+    .x.axis path {
+        display: none;
+    }
+
+    .line-0 {
+        fill: none;
+        stroke: steelblue;
+        stroke-width: 2px;
+    }
+
+    .line-1 {
+        fill: none;
+        stroke: #FF8A58;
+        stroke-width: 2px;
+    }
+
+    .line-2 {
+        fill: none;
+        stroke: #FFD658;
+        stroke-width: 2px;
+    }
+
+    .line-3 {
+        fill: none;
+        stroke: #41BB8A;
+        stroke-width: 2px;
+    }
+
+    .guide-line {
+        fill:none;
+        stroke: #464646;
+        stroke-width: 1.5px;
+        stroke-dasharray: 3, 3;
+    }
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+    var distribution_data = [
+        {
+            quarter: "Q1",
+            budget: 390000,
+            actual: 375000
+        },
+        {
+            quarter: "Q2",
+            budget: 395000,
+            actual: 382000
+        },
+        {
+            quarter: "Q3",
+            budget: 400000,
+            actual: 390000
+        },
+        {
+            quarter: "Q4",
+            budget: 410000,
+            actual: 408000
+        }
+    ]
+    var facilities_data = [
+        {
+            quarter: "Q1",
+            budget: 675000,
+            actual: 693000
+        },
+        {
+            quarter: "Q2",
+            budget: 800000,
+            actual: 837000
+        },
+        {
+            quarter: "Q3",
+            budget: 750000,
+            actual: 713000
+        },
+        {
+            quarter: "Q4",
+            budget: 750000,
+            actual: 790000
+        }
+    ]
+    var hr_data = [
+        {
+            quarter: "Q1",
+            budget: 350000,
+            actual: 346000
+        },
+        {
+            quarter: "Q2",
+            budget: 350000,
+            actual: 342000
+        },
+        {
+            quarter: "Q3",
+            budget: 350000,
+            actual: 340000
+        },
+        {
+            quarter: "Q4",
+            budget: 350000,
+            actual: 367000
+        }
+    ]
+    var is_data = [
+        {
+            quarter: "Q1",
+            budget: 950000,
+            actual: 925000
+        },
+        {
+            quarter: "Q2",
+            budget: 850000,
+            actual: 890000
+        },
+        {
+            quarter: "Q3",
+            budget: 875000,
+            actual: 976000
+        },
+        {
+            quarter: "Q4",
+            budget: 900000,
+            actual: 930000
+        }
+    ]
+    var guide_data = [
+        {
+            quarter: "Q1",
+            budget: 0,
+            actual: 0
+        },
+        {
+            quarter: "Q2",
+            budget: 0,
+            actual: 0
+        },
+        {
+            quarter: "Q3",
+            budget: 0,
+            actual: 0
+        },
+        {
+            quarter: "Q4",
+            budget: 0,
+            actual: 0
+        }
+    ]
+
+    var margin = {top: 20, right: 20, bottom: 30, left: 50},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+
+    var x = d3.scale.ordinal()
+            .domain(["Q1", "Q2", "Q3", "Q4"])
+            .rangePoints([0, width]);
+
+    var y = d3.scale.linear()
+            .range([height, 0]);
+
+    var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+
+    var line = d3.svg.line()
+            .x(function (d) {
+                return x(d.quarter);
+            })
+            .y(function (d) {
+                return y(d.budget - d.actual);
+            });
+
+    var svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    y.domain([-100000, 50000]);
+
+    svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+    svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("Budget - Actual");
+
+    var data_list = [distribution_data, facilities_data, hr_data, is_data];
+    for (var i = 0; i < data_list.length; i++) {
+        var the_dater = data_list[i]
+        svg.append("path")
+                .attr("d", line(the_dater))
+                .attr("class", "line-" + i.toString());
+        svg.selectAll("dot")
+                .data(the_dater)
+                .enter().append("circle")
+                .attr("r", 3.5)
+                .attr("cx", function(d) { return x(d.quarter); })
+                .attr("cy", function(d) { return y(d.budget - d.actual); })
+                .append("svg:title")
+                .text(function(d) { return 'Budget: ' + d.budget.toString() });;
+    }
+
+    //draw guideline at 0
+    svg.append("path")
+            .attr("d", line(guide_data))
+            .attr("class", "guide-line");
+
+    $('svg circle').tipsy({
+        gravity: 'w',
+        html: true,
+        fade: true,
+        offset: 10,
+        title: function() {
+            var d = this.__data__;
+            var budget = d.budget;
+            var actual = d.actual
+            return 'Budget: ' + budget.toString() + '<br>Actual: ' + actual.toString() + '<br>Delta: ' + (d.budget - d.actual).toString();
+        }
+    })
+
+</script>
+
+
+<!-- have line graph, 4 separate lines for each dept. Y-axis values will be 
+budget - actual delta. Mouseover will show the actual amounts -->
+
+<!-- show diff / budget? Might be good way to show proportion of profit compared to money budgeted. Look at it as return on investment -->
+
+<!-- show total yearly cumulative diff -->
